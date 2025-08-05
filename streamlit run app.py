@@ -1,5 +1,3 @@
-
-
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -27,7 +25,7 @@ def get_negative_peaks(x, y, prominence=0.1, top_n=10):
 
 def plot_spectra(dfs, settings, show_peaks, x_range):
     fig, ax = plt.subplots(figsize=(10, 6))
-    for i, (name, df) in enumerate(dfs.items()):
+    for name, df in dfs.items():
         start_x, end_x = x_range
         df_range = df[(df["Wavenumber_cm_1"] <= start_x) & (df["Wavenumber_cm_1"] >= end_x)]
         label = settings[name]["label"]
@@ -40,8 +38,8 @@ def plot_spectra(dfs, settings, show_peaks, x_range):
             peaks = get_negative_peaks(x, y, top_n=10)
             for peak in peaks:
                 ax.plot(peak["Wavenumber (cm⁻¹)"], peak["Transmission (%T)"], 'o', color=color)
-                ax.text(peak["Wavenumber (cm⁻¹)"], peak["Transmission (%T)"], str(peak["Wavenumber (cm⁻¹)"]), color=color,
-                        fontsize=8, ha='center', va='top')
+                ax.text(peak["Wavenumber (cm⁻¹)"], peak["Transmission (%T)"], str(peak["Wavenumber (cm⁻¹)"]),
+                        color=color, fontsize=8, ha='center', va='top')
 
     ax.invert_xaxis()
     ax.set_xlabel("Wavenumber (cm⁻¹)")
@@ -88,34 +86,46 @@ if uploaded_files:
     with col2:
         end_x = st.number_input("End Wavenumber (cm⁻¹)", value=600, step=10)
 
+    # === Farbpalette ===
+    color_palette = {
+        "Dark Blue": "#2066a8",
+        "Med Blue": "#8ecdda",
+        "Light Blue": "#cde1ec",
+        "Gray": "#ededed",
+        "Light Red": "#f6d6c2",
+        "Med Red": "#d47264",
+        "Dark Red": "#ae282c"
+    }
+
     # === Load Data ===
     dfs = {}
-    default_colors = ["blue", "green", "red", "purple", "orange", "brown", "cyan", "magenta"]
     settings = {}
+
+    st.subheader("Legend Settings")
+    st.markdown("Customize label and color for each spectrum")
 
     for i, file in enumerate(uploaded_files):
         name = file.name
         df = load_data_from_csv(file)
         dfs[name] = df
-        settings[name] = {
-            "color": default_colors[i % len(default_colors)],
-            "label": name.replace(".csv", "")
-        }
 
-    st.subheader("Legend Settings")
-    st.markdown("Customize label and color for each spectrum")
-
-    for name in dfs.keys():
-        col1, col2, col3 = st.columns([4, 2, 4])
+        col1, col2, col3 = st.columns([4, 3, 4])
         with col1:
-            label = st.text_input(f"Legend Label for `{name}`", value=settings[name]["label"], key=f"label_{name}")
+            label = st.text_input(f"Legend Label for `{name}`", value=name.replace(".csv", ""), key=f"label_{name}")
         with col2:
-            color = st.color_picker(f"Color for `{name}`", value=settings[name]["color"], key=f"color_{name}")
+            color_name = st.selectbox(
+                f"Color for `{name}`",
+                options=list(color_palette.keys()),
+                index=i % len(color_palette),
+                key=f"color_{name}"
+            )
         with col3:
             st.markdown("")
 
-        settings[name]["label"] = label
-        settings[name]["color"] = color
+        settings[name] = {
+            "label": label,
+            "color": color_palette.get(color_name, "#000000")  # fallback to black
+        }
 
     # === Peak Option ===
     show_peaks = st.checkbox("Show negative peaks (minima)", value=True)
@@ -147,3 +157,4 @@ if uploaded_files:
                 file_name="IR_negative_peaks.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
+
