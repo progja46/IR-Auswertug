@@ -142,13 +142,17 @@ if uploaded_files:
     fig = plot_spectra(dfs, settings, show_peaks, (start_x, end_x), font_size, legend_pos, line_width)
     st.pyplot(fig)
 
-    st.subheader("Angezeigte Spektren")
-for name in dfs:
-    st.write(f"Name: {settings[name]['label']} (Datei: {name})")
-    
-    st.subheader("Dateinamen für Export")
+    # === Dateiname für Export (nur einmal) ===
+    st.subheader("Dateiname für Export")
     file_base = st.text_input("Dateiname ohne Erweiterung", value="spectrum_plot")
 
+    # === Anzeige aller Spektren-Infos ===
+    st.subheader("Angezeigte Spektren")
+    for name in dfs:
+        label = settings[name]['label']
+        st.markdown(f"- **Label im Diagramm**: `{label}`  \n  **Dateiname**: `{name}`")
+
+    # === Exportbereich ===
     if show_peaks:
         all_peaks = []
         for name, df in dfs.items():
@@ -167,9 +171,6 @@ for name in dfs:
 
 else:
     st.info("Bitte lade mindestens eine CSV-Datei hoch.")
-
-    st.info("Please upload at least one CSV file to get started.")
-
 
 
 
