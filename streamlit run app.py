@@ -146,11 +146,10 @@ if uploaded_files:
     st.subheader("Dateiname für Export")
     file_base = st.text_input("Dateiname ohne Erweiterung", value="spectrum_plot")
 
-    # === Anzeige aller Spektren-Infos ===
+    # === Anzeige aller Spektren-Infos in einer Zeile ===
     st.subheader("Angezeigte Spektren")
-    for name in dfs:
-        label = settings[name]['label']
-        st.markdown(f"- **Label im Diagramm**: `{label}`  \n  **Dateiname**: `{name}`")
+    info_line = " ; ".join([f"{settings[name]['label']}: {name}" for name in dfs])
+    st.markdown(info_line)
 
     # === Exportbereich ===
     if show_peaks:
@@ -171,6 +170,4 @@ if uploaded_files:
 
 else:
     st.info("Bitte lade mindestens eine CSV-Datei hoch.")
-
-
 
